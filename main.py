@@ -75,33 +75,38 @@ class cuSession(requests.sessions.Session):
       #set the student id (SID)
       info["SID"] = splitText[0].strip()[7:-8]
 
+      #set a shift for students who also are employees
+      EmployeeShift = 0
+
       #if the student is a employee, set there EID
-      if splitText[1].strip()[7:-8] != "":
+      if splitText[1].strip() != "<demographicData>":
          info["EID"] = splitText[1].strip()[7:-8]
+         EmployeeShift = 1
       else:
          info["EID"] = None
 
       #Set the affiliation (Student/staff)
-      info["Affiliation"] = splitText[4].strip()[13:-14]
+      info["Affiliation"] = splitText[3 + EmployeeShift].strip()[13:-14]
 
       #set the first name
-      info["FirstName"] = splitText[6].strip()[15:-16]
+      info["FirstName"] = splitText[5 + EmployeeShift].strip()[15:-16]
 
       #set the last name
-      info["LastName"] = splitText[7].strip()[14:-15]
+      info["LastName"] = splitText[6 + EmployeeShift].strip()[14:-15]
 
       #set the college (Arts and Scineces.. ect)
-      info["College"] = splitText[11].strip()[16:-17]
+      info["College"] = splitText[10 + EmployeeShift].strip()[16:-18]
 
       #set their major
-      info["Major"] = splitText[12].strip()[14:-15]
+      info["Major"] = splitText[11 + EmployeeShift].strip()[14:-15]
 
       #if they have a minor, set the minor
       if splitText[13].strip()[16:-17] != "":
          info["Minor"] = splitText[13].strip()[16:-17]
       else:
          info["Minor"] = None
-      info["ClassStanding"] = splitText[14].strip()[15:-16]
+
+      info["ClassStanding"] = splitText[13 + EmployeeShift].strip()[15:-16]
 
       return info
 
