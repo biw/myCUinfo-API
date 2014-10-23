@@ -110,6 +110,154 @@ class cuSession(requests.sessions.Session):
 
       return info
 
+   def classes(self, term = "Fall2014"):
+
+      #if the user is not logged in, error out, else go for it
+      if self.valid == False:
+         return False
+
+      #split up the url so it fits on one line
+      url0 = "https://portal.prod.cu.edu/psp/epprod/UCB2/ENTP/h/"
+      url1 = "?cmd=getCachedPglt&pageletname=CU_STUDENT_SCHEDULE"
+      url = url0 + url1
+
+      #get the page text from the page (encode it utf-8)
+      pageText = self.session.get(url).text.encode("utf-8")
+
+      #split up the first part by the Course Schedule
+      FallText = pageText.split("BLDR Campus - Course Schedule: Fall 2014")[1:]
+
+      #then split it up by line (Sort of)
+      FallText = FallText[0].split("<tr>")[2:]
+
+      #split up the second part by the Course Info
+      Fall2 = pageText.split("BLDR Campus - Course Information: Fall 2014")[1:]
+
+      #split it up by line (sort of)
+      Fall2 = Fall2[0].split("<tr>")[2:]
+
+      #set a variable to go through
+      i = 0
+
+      #create a blank array for the class list
+      ClassList = []
+
+      #while there are things in the class list
+      while FallText[i][0:4].strip() == "<td":
+
+         #creat a temp class to add the info to later
+         tempClass = {}
+
+         #split up the text for the first line
+         ClassLines = FallText[i].strip().split("\n")
+
+         #split up the text for the second line (we use this a little)
+         ClassLines2 = Fall2[i].strip().split("\n")
+
+         #go through the length of the  ClassLines
+         for ii in range(len(ClassLines)):
+
+            #redefine what a line is
+            line = ClassLines[ii]
+
+            #define what line2 is
+            if ii == len(ClassLines)-1:
+               line2 = ClassLines[ii]
+            else:
+               line2 = ClassLines2[ii+1]
+
+            #if the department is empty
+            if "Department" not in tempClass:
+
+               #set the department
+               tempClass["Department"] = line[4:8]
+
+               #set the Class Number (ClassCP)
+               tempClass["ClassCP"] = line[9:13]
+
+               #set the Section Number (ClassCS)
+               tempClass["ClassCS"] = line[14:17]
+
+            #if there is no class title
+            elif "Title" not in tempClass:
+
+               #get it form the second line
+               line2 = line2.split("\n")
+
+               #set the title
+               tempClass["Title"] = line2[0][4:-5]
+
+            #if we are on lines 2,4,5 or 7 do nothing
+            elif ii == 2 or ii == 4 or ii == 5 or ii == 7:
+               do = "nothing"
+
+            #if there is no class time set
+            elif "Days" not in tempClass:
+
+               #set the class day
+               tempClass["Days"] = line.split(">")[1].split("<")[0].strip()
+
+               #set the class start time
+               tempClass["StartTime"] = line.split(">")[2].split("<")[0].strip()
+
+               #set the class end time
+               tempClass["EndTime"] = line.split(">")[4].split("<")[0].strip()
+
+               #set the class instructor
+               tempClass["Instructor"] =line2.split(">")[1].split("<")[0][0:-12]
+
+            #if there is no building set
+            elif "Building" not in tempClass:
+
+               #get the building and the room
+               BuildingRoom = line.split(">")[2].split("<")[0].strip().split()
+
+               #set the building
+               tempClass["Building"] = BuildingRoom[0]
+
+               #set the room
+               tempClass["Room"] = BuildingRoom[1]
+
+            #if there is no class status set yet
+            elif "Status" not in tempClass:
+
+               #set the class status
+               tempClass["Status"] = line[4:-5]
+
+               #if there are no credit infos
+               if line2[19:-5] == "":
+
+                  #set the number of credits to 0
+                  tempClass["Credits"] = 0
+
+               else:
+
+                  #set the class credits
+                  tempClass["Credits"] = line2[19:-5]
+
+            #if there is no grade set
+            elif "Grade" not in tempClass:
+
+               #if there is no grade info
+               if line[19:-5] == "":
+
+                  #set the grade to none
+                  tempClass["Grade"] = None
+
+               else:
+
+                  #set teh grade info from the class
+                  tempClass["Grade"] = line[19:-5]
+
+         #add the class to the classList
+         ClassList.append(tempClass)
+
+         #add one to the counter of classes
+         i += 1
+
+      #return the classList
+      return ClassList
+
    #look up the books needed for any class
    def books(self, Department, CourseNumber, Section, term = "Fall2014"):
 
@@ -255,6 +403,9 @@ if cuLog.valid:
 
    #example of how to get the info of the user
    print cuLog.info()
+
+   #example of how to get the classes of the user (Fall 2014)
+   print cuLog.classes()
 
 else:
    print "Bad user. Check the username/password"
