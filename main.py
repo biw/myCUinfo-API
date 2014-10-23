@@ -73,17 +73,17 @@ class cuSession(requests.sessions.Session):
       info = {}
 
       #set the student id (SID)
-      info["SID"] = splitText[0].strip()[7:-8]
+      info["SID"] = int(splitText[0].strip()[7:-8])
 
       #set a shift for students who also are employees
       EmployeeShift = 0
 
       #if the student is a employee, set there EID
       if splitText[1].strip() != "<demographicData>":
-         info["EID"] = splitText[1].strip()[7:-8]
+         info["EID"] = int(splitText[1].strip()[7:-8])
          EmployeeShift = 1
       else:
-         info["EID"] = None
+         info["EID"] = 0
 
       #Set the affiliation (Student/staff)
       info["Affiliation"] = splitText[3 + EmployeeShift].strip()[13:-14]
@@ -233,7 +233,7 @@ class cuSession(requests.sessions.Session):
                else:
 
                   #set the class credits
-                  tempClass["Credits"] = line2[19:-5]
+                  tempClass["Credits"] = int(line2[19:-5])
 
             #if there is no grade set
             elif "Grade" not in tempClass:
