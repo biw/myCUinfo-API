@@ -316,14 +316,14 @@ class cuSession(requests.sessions.Session):
       bookList = []
 
       #while loop deviding into 15, the amount of lines in a book
-      while i < len(splitText)/15:
+      while i < len(splitText)/17:
 
          #create a book dict to add to
          newbook = {}
 
          #create the start and end of the loop based on i
-         ii = 16*i
-         endRange = 16 * (i+1)
+         ii = 18*i
+         endRange = 18 * (i+1)
 
          #while the range is on one book
          while ii < endRange:
@@ -355,25 +355,41 @@ class cuSession(requests.sessions.Session):
 
             #if there is no New Price, add it
             elif "New Price" not in newbook:
-               newbook["New Price"] = float(splitText[ii][1:-2].strip())
+
+               if len(splitText[ii][14:-2]) > 2:
+                  newbook["New Price"] = float(splitText[ii][14:-2].strip())
+               else:
+                  print("-----")
+                  print splitText[ii].strip()
+                  print("-----")
+                  newbook["New Price"] = None
 
             #if there is no Used Price, add it
             elif "Used Price" not in newbook:
-               if len(splitText[ii][1:-2]) > 0:
-                  newbook["Used Price"] = float(splitText[ii][1:-2].strip())
+               if len(splitText[ii][15:-2]) > 2:
+                  newbook["Used Price"] = float(splitText[ii][15:-2].strip())
                else:
 
                   #if there is no price listed, set to N/A
                   newbook["Used Price"] = None
 
-            #if there is no Rent Price, add it
-            elif "Rent Price" not in newbook:
-               if len(splitText[ii][1:-2]) > 2:
-                  newbook["Rent Price"] = float(splitText[ii][1:-2].strip())
+            #if there is no New Rental Price, add it
+            elif "New Rental Price" not in newbook:
+               if len(splitText[ii][15:-2]) > 2:
+                  newbook["New Rental Price"] = float(splitText[ii][15:-2].strip())
                else:
 
                   #if there is no price listed, set to N/A
-                  newbook["Rent Price"] = None
+                  newbook["New Rental Price"] = None
+
+            #if there is no Used Rental Price, add it
+            elif "Used Rental Price" not in newbook:
+               if len(splitText[ii][15:-2]) > 2:
+                  newbook["Used Rental Price"] = float(splitText[ii][15:-2].strip())
+               else:
+
+                  #if there is no price listed, set to N/A
+                  newbook["Used Rental Price"] = None
 
             #increase ii by two (every other line has garbage text)
             ii += 2
