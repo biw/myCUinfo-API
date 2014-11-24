@@ -402,6 +402,27 @@ class cuSession(requests.sessions.Session):
 
       return bookList
 
+   #look up overall GPA
+   def GPA(self):
+
+      #set the url (broken up for line length)
+      url0 = "https://isis-cs.prod.cu.edu/psc/csprod/UCB2/HRMS/c/"
+      url1 = "SA_LEARNER_SERVICES.SSR_SSENRL_GRADE.GBL?"
+      url2 = "ACAD_CAREER=UGRD&INSTITUTION=CUBLD&STRM=2151"
+      baseUrl = url0 + url1 + url2
+
+      #get the page text
+      pageText = self.session.post(baseUrl).text#, data=data2).text
+
+      #split the text up by "CU_MYSRSE_INST_CUM_GPA$14"
+      splitText = pageText.encode("utf-8").split("CU_MYCRSE_INST_CUM_GPA$14'>")
+
+      #ignore the first two parts of the split, then turn the gpa to float
+      GPA = float(splitText[2][0:5])
+
+      #return the GPA
+      return GPA
+
 
 #define the username & password for the cuSession
 user0 = "user0000"
@@ -422,6 +443,9 @@ if cuLog.valid:
 
    #example of how to get the classes of the user (Fall 2014)
    print cuLog.classes()
+
+   #example of how to get the GPA of the user
+   print cuLog.GPA()
 
 else:
    print "Bad user. Check the username/password"
