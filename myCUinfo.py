@@ -110,7 +110,7 @@ class cuSession(requests.sessions.Session):
 
       return info
 
-   def classes(self, term = "Fall2014"):
+   def classes(self, term = "Spring2015"):
 
       #if the user is not logged in, error out, else go for it
       if self.valid == False:
@@ -125,13 +125,13 @@ class cuSession(requests.sessions.Session):
       pageText = self.session.get(url).text.encode("utf-8")
 
       #split up the first part by the Course Schedule
-      FallText = pageText.split("BLDR Campus - Course Schedule: Fall 2014")[1:]
+      FallText = pageText.split("BLDR Campus - Course Schedule: Spring 2015")[1:]
 
       #then split it up by line (Sort of)
       FallText = FallText[0].split("<tr>")[2:]
 
       #split up the second part by the Course Info
-      Fall2 = pageText.split("BLDR Campus - Course Information: Fall 2014")[1:]
+      Fall2 = pageText.split("BLDR Campus - Course Information: Spring 2015")[1:]
 
       #split it up by line (sort of)
       Fall2 = Fall2[0].split("<tr>")[2:]
@@ -259,7 +259,7 @@ class cuSession(requests.sessions.Session):
       return ClassList
 
    #look up the books needed for any class
-   def books(self, Department, CourseNumber, Section, term = "Fall2014"):
+   def books(self, Department, CourseNumber, Section, term = "Spring2015"):
 
       #if the user is not logged in, error out, else go for it
       if self.valid == False:
