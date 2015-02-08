@@ -1,9 +1,11 @@
+import myCUinfo
+
 #define the username & password for the cuSession
 user0 = "user0000"
 pass0 = "password"
 
 #create the cuLog Session
-cuLog = cuSession(user0, pass0)
+cuLog = myCUinfo.cuSession(user0, pass0)
 
 
 #if the loggin session is a valid one

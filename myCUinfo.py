@@ -200,8 +200,13 @@ class cuSession(requests.sessions.Session):
                #set the class start time
                tempClass["StartTime"] = line.split(">")[2].split("<")[0].strip()
 
-               #set the class end time
-               tempClass["EndTime"] = line.split(">")[4].split("<")[0].strip()
+               #try to set the end time, unless there is not one
+               try:
+                  #set the class end time
+                  tempClass["EndTime"] = line.split(">")[4].split("<")[0].strip()
+
+               except IndexError:
+                  tempClass["EndTime"] = None
 
                #set the class instructor
                tempClass["Instructor"] =line2.split(">")[1].split("<")[0][0:-12]
@@ -209,14 +214,21 @@ class cuSession(requests.sessions.Session):
             #if there is no building set
             elif "Building" not in tempClass:
 
-               #get the building and the room
-               BuildingRoom = line.split(">")[2].split("<")[0].strip().split()
+               #try to set the building and room, unless there is not one
+               try:
+                  #get the building and the room
+                  BuildingRoom = line.split(">")[2].split("<")[0].strip().split()
 
-               #set the building
-               tempClass["Building"] = BuildingRoom[0]
+                  #set the building
+                  tempClass["Building"] = BuildingRoom[0]
 
-               #set the room
-               tempClass["Room"] = BuildingRoom[1]
+                  #set the room
+                  tempClass["Room"] = BuildingRoom[1]
+
+               except IndexError:
+                  tempClass["Building"] = None
+                  tempClass["Room"] = None
+
 
             #if there is no class status set yet
             elif "Status" not in tempClass:
