@@ -16,7 +16,7 @@ Then run the code with python 2.7
 ##Functions and Output##
 The API currently has a few functions that scrape the info off the myCUinfo site. They all use methods on an initialized cuSessions logged in user. This way the convoluted login process is only handled once.
 
-####cuSessions(username, password) (initializer)####
+####cuSession(username, password) (initializer)####
 This is the overarching class of the myCUinfo API. It takes in a username & password of a myCUinfo user and returns a class object that is a logged in user.
 ```python
 user = "example001"
