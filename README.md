@@ -1,5 +1,8 @@
 #myCUinfo-API#
 
+##UPDATE JUNE 2015##
+The myCUinfo.colorado.edu site has changed and with it so has its endpoints. The myCUinfo-API does not currently work. Updates to come.
+
 ##About##
 This is a python wrapper for the [myCUinfo System](http://mycuinfo.colorado.edu) at the [University of Colorado Boulder](http://colorado.edu). It uses the [python requests library](http://python-requests.org) to scrape the data for any given student with valid login credentials. It currently is read only (you can't edit you classes with it) but I have plans on adding functionality to add/remove classes.
 
