@@ -2,7 +2,10 @@ import myCUinfo
 import getpass
 
 # define the username & password for the cuSession
-user0 = input("username: ")
+try:
+    user0 = raw_input("username: ")
+except NameError:
+    user0 = input("username: ")
 pass0 = getpass.getpass("password: ")
 
 # create the cuLog Session

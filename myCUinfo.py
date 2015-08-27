@@ -1,9 +1,5 @@
-# make sure to install requests if you want to use this
-# http://python-requests.org
+# coding=utf8
 import requests
-
-# NOTE: Code only works with python2 for now, working on fixing it once I get
-# the whole api made.
 
 
 class cuSession(requests.sessions.Session):
@@ -15,8 +11,7 @@ class cuSession(requests.sessions.Session):
         session = requests.Session()
 
         # start the session url by going to mycuinfo first
-        x = session.get('https://mycuinfo.colorado.edu')
-        return
+        x = session.get('http://mycuinfo.colorado.edu')
 
         # split up the url to get the session url
         xsplit = x.text.split('<form id="')[1].split('action="')
@@ -33,7 +28,7 @@ class cuSession(requests.sessions.Session):
         # get the ping code to loggin
         finalSub = z.text.split('value=')[1][1:].split('"/>')[0]
 
-        # set the first redirect, we must always go to the opening url
+        # set the first redirect, must always go to the opening url
         payload2 = {"SAMLResponse": finalSub, "RelayState": RelayUrl}
 
         # send the final ping adress, once this is done we are logged in.
@@ -65,16 +60,19 @@ class cuSession(requests.sessions.Session):
         pageLoad = self.session.get(url)
 
         # get the text (encode it unicode)
-        pageText = pageLoad.text.encode("utf-8")
+        pageText = pageLoad.text
 
         # split the text up a few times till we just have the info
-        splitText = pageText.split("<!--")[2][:-2].strip().split("\n")[2:-5]
+        splitText = pageText.split("<!--")[1][:-2].strip().split("\n")[2:-5]
 
         # create a blank dictonary to add to
         info = {}
 
         # set the student id (SID)
-        info["SID"] = int(splitText[0].strip()[7:-8])
+        try:
+            info["SID"] = int(splitText[0].strip()[7:-8])
+        except:
+            print(len(splitText))
 
         # set a shift for students who also are employees
         EmployeeShift = 0
@@ -123,18 +121,16 @@ class cuSession(requests.sessions.Session):
         url = url0 + url1
 
         # get the page text from the page (encode it utf-8)
-        pageText = self.session.get(url).text.encode("utf-8")
+        pageText = self.session.get(url).text
 
         # split up the first part by the Course Schedule
-        FallText = pageText.split(
-            "BLDR Campus - Course Schedule: Spring 2015")[1:]
+        FallText = pageText.split("Schedule: Fall 2015")[1:]
 
         # then split it up by line (Sort of)
         FallText = FallText[0].split("<tr>")[2:]
 
         # split up the second part by the Course Info
-        Fall2 = pageText.split(
-            "BLDR Campus - Course Information: Spring 2015")[1:]
+        Fall2 = pageText.split("Grades / Details: Fall 2015")[1:]
 
         # split it up by line (sort of)
         Fall2 = Fall2[0].split("<tr>")[2:]
@@ -330,7 +326,7 @@ class cuSession(requests.sessions.Session):
             baseUrl + course1 + section1 + term1 + session1).text
 
         # split the text up by "td", ignore the first item in list
-        splitText = pageText.encode("utf-8").split("td")[1:]
+        splitText = pageText.split("td")[1:]
 
         # create a counter & empty book list
         i = 0
@@ -355,7 +351,10 @@ class cuSession(requests.sessions.Session):
 
                 # if there is not Title, add it
                 elif "Title" not in newbook:
-                    newbook["Title"] = splitText[ii][1:-2].strip()
+                    try:
+                        newbook["Title"] = splitText[ii][1:-2].strip()
+                    except:
+                        print(len(splitText), ii)
 
                 # if there is not Required, add it (bool)
                 elif "Required" not in newbook:
@@ -437,14 +436,11 @@ class cuSession(requests.sessions.Session):
         baseUrl = url0 + url1 + url2
 
         # get the page text
-        pageText = self.session.post(baseUrl).text  # , data=data2).text
+        pageText = self.session.post(baseUrl).text
 
-        # split the text up by "CU_MYSRSE_INST_CUM_GPA$14"
-        splitText = pageText.encode(
-            "utf-8").split("CU_MYCRSE_INST_CUM_GPA$14'>")
+        # get the GPA
+        splitText = pageText.split("PSEDITBOXLABEL")[-1].split(">")[1][0:5]
 
-        # ignore the first two parts of the split, then turn the gpa to float
-        GPA = float(splitText[2][0:5])
+        GPA = float(splitText)
 
-        # return the GPA
         return GPA
