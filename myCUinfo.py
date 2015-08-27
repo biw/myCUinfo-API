@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # coding=utf8
 import requests
 
@@ -75,29 +76,29 @@ class cuSession(requests.sessions.Session):
             print(len(splitText))
 
         # set a shift for students who also are employees
-        EmployeeShift = 0
+        employeeShift = 0
 
         # if the student is a employee, set there EID
         if splitText[1].strip() != "<demographicData>":
             info["EID"] = int(splitText[1].strip()[7:-8])
-            EmployeeShift = 1
+            employeeShift = 1
         else:
             info["EID"] = 0
 
         # Set the affiliation (Student/staff)
-        info["Affiliation"] = splitText[3 + EmployeeShift].strip()[13:-14]
+        info["Affiliation"] = splitText[3 + employeeShift].strip()[13:-14]
 
         # set the first name
-        info["FirstName"] = splitText[5 + EmployeeShift].strip()[15:-16]
+        info["FirstName"] = splitText[5 + employeeShift].strip()[15:-16]
 
         # set the last name
-        info["LastName"] = splitText[6 + EmployeeShift].strip()[14:-15]
+        info["LastName"] = splitText[6 + employeeShift].strip()[14:-15]
 
         # set the college (Arts and Scineces.. ect)
-        info["College"] = splitText[10 + EmployeeShift].strip()[16:-18]
+        info["College"] = splitText[10 + employeeShift].strip()[16:-18]
 
         # set their major
-        info["Major"] = splitText[11 + EmployeeShift].strip()[14:-15]
+        info["Major"] = splitText[11 + employeeShift].strip()[14:-15]
 
         # if they have a minor, set the minor
         if splitText[13].strip()[16:-17] != "":
@@ -105,11 +106,11 @@ class cuSession(requests.sessions.Session):
         else:
             info["Minor"] = None
 
-        info["ClassStanding"] = splitText[13 + EmployeeShift].strip()[15:-16]
+        info["ClassStanding"] = splitText[13 + employeeShift].strip()[15:-16]
 
         return info
 
-    def classes(self, term="Spring2015"):
+    def classes(self, term="Fall 2015"):
 
         # if the user is not logged in, error out, else go for it
         if self.valid == False:
@@ -120,158 +121,69 @@ class cuSession(requests.sessions.Session):
         url1 = "?cmd=getCachedPglt&pageletname=CU_STUDENT_SCHEDULE"
         url = url0 + url1
 
-        # get the page text from the page (encode it utf-8)
+        # get the page text
         pageText = self.session.get(url).text
 
         # split up the first part by the Course Schedule
-        FallText = pageText.split("Schedule: Fall 2015")[1:]
+        try:
+            fallText = pageText.split("Grades / Details: " + term)[1].split(
+                "* FCQ = Faculty Course Questionnaire")[0]
+        except:
+            print("Invalid term given for classes. Valid Ex: 'Fall 2015'")
+            return None
 
-        # then split it up by line (Sort of)
-        FallText = FallText[0].split("<tr>")[2:]
+        classInfoList = fallText.split("<tr>")[2:]
 
-        # split up the second part by the Course Info
-        Fall2 = pageText.split("Grades / Details: Fall 2015")[1:]
+        classList = []
 
-        # split it up by line (sort of)
-        Fall2 = Fall2[0].split("<tr>")[2:]
+        for classInfo in classInfoList:
 
-        # set a variable to go through
-        i = 0
+            # a lot of html parsing and spliting. Really hard to leave a nice
+            # context without looking at the html. Tried to write so things
+            # won't get wonky if values are blank
 
-        # create a blank array for the class list
-        ClassList = []
-
-        # while there are things in the class list
-        while FallText[i][0:4].strip() == "<td":
-
-            # creat a temp class to add the info to later
             tempClass = {}
 
-            # split up the text for the first line
-            ClassLines = FallText[i].strip().split("\n")
+            courseSection = classInfo[5:].split("&nbsp;")
 
-            # split up the text for the second line (we use this a little)
-            ClassLines2 = Fall2[i].strip().split("\n")
+            tempClass["department"] = courseSection[0]
+            tempClass["classCode"] = courseSection[1][0:4]
+            tempClass["section"] = courseSection[1][5:8]
 
-            # go through the length of the  ClassLines
-            for ii in range(len(ClassLines)):
+            nameAndType = classInfo.split("<td>")[2].split("</td>")[0]
+            nameAndType = nameAndType.split("&nbsp;")
 
-                # redefine what a line is
-                line = ClassLines[ii]
+            tempClass["name"] = nameAndType[0].replace("&amp;", "&")
+            tempClass["type"] = nameAndType[1][1:-1]
 
-                # define what line2 is
-                if ii == len(ClassLines) - 1:
-                    line2 = ClassLines[ii]
-                else:
-                    line2 = ClassLines2[ii + 1]
+            dateAndTime = classInfo.split(
+                "meetingtime\"")[1][1:].split("</div>")[0].split(">")
 
-                # if the department is empty
-                if "Department" not in tempClass:
+            tempClass["days"] = dateAndTime[0].split("<")[0][0:-1]
+            tempClass["startTime"] = dateAndTime[1].split("<")[0]
+            tempClass["endTime"] = dateAndTime[3].split("<")[0]
 
-                    # set the department
-                    tempClass["Department"] = line[4:8]
+            tempInstructor = {}
 
-                    # set the Class Number (ClassCP)
-                    tempClass["ClassCP"] = line[9:13]
+            instrutr = classInfo.split("iname=")[1].split("\"")[0].split(",")
 
-                    # set the Section Number (ClassCS)
-                    tempClass["ClassCS"] = line[14:17]
+            tempInstructor["firstName"] = instrutr[1]
+            tempInstructor["lastName"] = instrutr[0]
 
-                # if there is no class title
-                elif "Title" not in tempClass:
+            tempClass["instructor"] = tempInstructor
 
-                    # get it form the second line
-                    line2 = line2.split("\n")
+            extraInfo = classInfo.split("align=\"center\">")
 
-                    # set the title
-                    tempClass["Title"] = line2[0][4:-5]
+            tempClass["credits"] = int(extraInfo[2].split("<")[0])
+            tempClass["status"] = extraInfo[3].split("<")[0]
+            tempClass["grade"] = extraInfo[4].split("<")[0]
 
-                # if we are on lines 2,4,5 or 7 do nothing
-                elif ii == 2 or ii == 4 or ii == 5 or ii == 7:
-                    do = "nothing"
+            if tempClass["grade"] == "":
+                del(tempClass["grade"])
 
-                # if there is no class time set
-                elif "Days" not in tempClass:
+            classList.append(tempClass)
 
-                    # set the class day
-                    tempClass["Days"] = line.split(
-                        ">")[1].split("<")[0].strip()
-
-                    # set the class start time
-                    tempClass["StartTime"] = line.split(
-                        ">")[2].split("<")[0].strip()
-
-                    # try to set the end time, unless there is not one
-                    try:
-                        # set the class end time
-                        tempClass["EndTime"] = line.split(
-                            ">")[4].split("<")[0].strip()
-
-                    except IndexError:
-                        tempClass["EndTime"] = None
-
-                    # set the class instructor
-                    tempClass["Instructor"] = line2.split(
-                        ">")[1].split("<")[0][0:-12]
-
-                # if there is no building set
-                elif "Building" not in tempClass:
-
-                    # try to set the building and room, unless there is not one
-                    try:
-                        # get the building and the room
-                        BuildingRoom = line.split(">")[2].split(
-                            "<")[0].strip().split()
-
-                        # set the building
-                        tempClass["Building"] = BuildingRoom[0]
-
-                        # set the room
-                        tempClass["Room"] = BuildingRoom[1]
-
-                    except IndexError:
-                        tempClass["Building"] = None
-                        tempClass["Room"] = None
-
-                # if there is no class status set yet
-                elif "Status" not in tempClass:
-
-                    # set the class status
-                    tempClass["Status"] = line[4:-5]
-
-                    # if there are no credit infos
-                    if line2[19:-5] == "":
-
-                        # set the number of credits to 0
-                        tempClass["Credits"] = 0
-
-                    else:
-
-                        # set the class credits
-                        tempClass["Credits"] = int(line2[19:-5])
-
-                # if there is no grade set
-                elif "Grade" not in tempClass:
-
-                    # if there is no grade info
-                    if line[19:-5] == "":
-
-                        # set the grade to none
-                        tempClass["Grade"] = None
-
-                    else:
-
-                        # set teh grade info from the class
-                        tempClass["Grade"] = line[19:-5]
-
-            # add the class to the classList
-            ClassList.append(tempClass)
-
-            # add one to the counter of classes
-            i += 1
-
-        # return the classList
-        return ClassList
+        return classList
 
     # look up the books needed for any class
     def books(self, Department, CourseNumber, Section, term="Spring2015"):
