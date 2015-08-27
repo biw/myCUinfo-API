@@ -147,7 +147,7 @@ class cuSession(requests.sessions.Session):
             courseSection = classInfo[5:].split("&nbsp;")
 
             tempClass["department"] = courseSection[0]
-            tempClass["classCode"] = courseSection[1][0:4]
+            tempClass["classCode"] = courseSection[1][:4]
             tempClass["section"] = courseSection[1][5:8]
 
             nameAndType = classInfo.split("<td>")[2].split("</td>")[0]
@@ -159,7 +159,7 @@ class cuSession(requests.sessions.Session):
             dateAndTime = classInfo.split(
                 "meetingtime\"")[1][1:].split("</div>")[0].split(">")
 
-            tempClass["days"] = dateAndTime[0].split("<")[0][0:-1]
+            tempClass["days"] = dateAndTime[0].split("<")[0][:-1]
             tempClass["startTime"] = dateAndTime[1].split("<")[0]
             tempClass["endTime"] = dateAndTime[3].split("<")[0]
 
@@ -186,7 +186,7 @@ class cuSession(requests.sessions.Session):
         return classList
 
     # look up the books needed for any class
-    def books(self, Department, CourseNumber, Section, term="Spring2015"):
+    def books(self, Department, CourseNumber, Section, term="Fall2015"):
 
         # if the user is not logged in, error out, else go for it
         if self.valid == False:
@@ -196,10 +196,8 @@ class cuSession(requests.sessions.Session):
         # set the term info. The move up by three/four every semester, so we can
         # use that forumual to change the term info to correct number for the
         # API.
-        if term == "Summer2014" or term == 2144:
-            term = "2144"
-        elif term == "Fall2014" or term == 2147:
-            term = "2147"
+        if term == "Fall2015" or term == 2147:
+            term = "2157"
         elif term == "Spring2015" or term == 2151:
             term = "2151"
         elif term == "Summer2015" or term == 2154:
@@ -237,104 +235,34 @@ class cuSession(requests.sessions.Session):
         pageText = self.session.get(
             baseUrl + course1 + section1 + term1 + session1).text
 
-        # split the text up by "td", ignore the first item in list
-        splitText = pageText.split("td")[1:]
-
-        # create a counter & empty book list
-        i = 0
         bookList = []
 
-        # while loop deviding into 15, the amount of lines in a book
-        while i < len(splitText) / 17:
+        bookInfoList = pageText.split("<tbody>")[1].split(
+            "</tbody>")[0].split("<tr>")[1:]
 
-            # create a book dict to add to
-            newbook = {}
+        for bookInfo in bookInfoList:
 
-            # create the start and end of the loop based on i
-            ii = 18 * i
-            endRange = 18 * (i + 1)
+            infoList = bookInfo.split("<td")
 
-            # while the range is on one book
-            while ii < endRange:
+            tempBook = {}
 
-                # if there is not Author, add it
-                if "Author" not in newbook:
-                    newbook["Author"] = splitText[ii][1:-2].strip()
-
-                # if there is not Title, add it
-                elif "Title" not in newbook:
-                    try:
-                        newbook["Title"] = splitText[ii][1:-2].strip()
-                    except:
-                        print(len(splitText), ii)
-
-                # if there is not Required, add it (bool)
-                elif "Required" not in newbook:
-
-                    # if the site tells us the book is required
-                    if splitText[ii][18:-2].strip() == "Required":
-                        newbook["Required"] = True
-                    else:
-                        newbook["Required"] = False
-
-                # if there is no Course, add it
-                elif "Course" not in newbook:
-                    newbook["Course"] = splitText[ii][1:-2].strip()
-
-                # if there is no ISBN, add it
-                elif "ISBN" not in newbook:
-                    newbook["ISBN"] = splitText[ii][1:-2].strip()
-
-                # if there is no New Price, add it
-                elif "New Price" not in newbook:
-
-                    if len(splitText[ii][14:-2]) > 2:
-                        newbook["New Price"] = float(
-                            splitText[ii][14:-2].strip())
-                    else:
-                        print("-----")
-                        print(splitText[ii].strip())
-                        print("-----")
-                        newbook["New Price"] = None
-
-                # if there is no Used Price, add it
-                elif "Used Price" not in newbook:
-                    if len(splitText[ii][15:-2]) > 2:
-                        newbook["Used Price"] = float(
-                            splitText[ii][15:-2].strip())
-                    else:
-
-                        # if there is no price listed, set to N/A
-                        newbook["Used Price"] = None
-
-                # if there is no New Rental Price, add it
-                elif "New Rental Price" not in newbook:
-                    if len(splitText[ii][15:-2]) > 2:
-                        newbook["New Rental Price"] = float(
-                            splitText[ii][15:-2].strip())
-                    else:
-
-                        # if there is no price listed, set to N/A
-                        newbook["New Rental Price"] = None
-
-                # if there is no Used Rental Price, add it
-                elif "Used Rental Price" not in newbook:
-                    if len(splitText[ii][15:-2]) > 2:
-                        newbook["Used Rental Price"] = float(
-                            splitText[ii][15:-2].strip())
-                    else:
-
-                        # if there is no price listed, set to N/A
-                        newbook["Used Rental Price"] = None
-
-                # increase ii by two (every other line has garbage text)
-                ii += 2
-
-            # append our newbook to the bookList
-            bookList.append(newbook)
-
-            # increase to the next book
-            i += 1
+            # gets all the book info, adds nothing is something errors
+            try:
+                tempBook["author"] = infoList[1][1:-5]
+                tempBook["title"] = infoList[2][1:-5]
+                tempBook["required"] = infoList[3].split(">")[1][:-4]
+                tempBook["course"] = infoList[4][1:-5]
+                tempBook["isbn"] = infoList[5][1:-5]
+                tempBook["new"] = float(infoList[6].split(">")[1][:-4].strip())
+                tempBook["used"] = float(
+                    infoList[7].split(">")[1][:-4].strip())
+                tempBook["newRent"] = float(
+                    infoList[8].split(">")[1][:-4].strip())
+                tempBook["usedRent"] = float(
+                    infoList[9].split(">")[1][:-4].strip())
+                bookList.append(tempBook)
+            except:
+                pass
 
         return bookList
 
@@ -351,7 +279,7 @@ class cuSession(requests.sessions.Session):
         pageText = self.session.post(baseUrl).text
 
         # get the GPA
-        splitText = pageText.split("PSEDITBOXLABEL")[-1].split(">")[1][0:5]
+        splitText = pageText.split("PSEDITBOXLABEL")[-1].split(">")[1][:5]
 
         GPA = float(splitText)
 
