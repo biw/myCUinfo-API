@@ -71,7 +71,7 @@ class cuSession(requests.sessions.Session):
 
         # set the student id (SID)
         try:
-            info["SID"] = int(splitText[0].strip()[7:-8])
+            info["sid"] = int(splitText[0].strip()[7:-8])
         except:
             print(len(splitText))
 
@@ -80,33 +80,33 @@ class cuSession(requests.sessions.Session):
 
         # if the student is a employee, set there EID
         if splitText[1].strip() != "<demographicData>":
-            info["EID"] = int(splitText[1].strip()[7:-8])
+            info["eid"] = int(splitText[1].strip()[7:-8])
             employeeShift = 1
         else:
-            info["EID"] = 0
+            info["eid"] = 0
 
         # Set the affiliation (Student/staff)
-        info["Affiliation"] = splitText[3 + employeeShift].strip()[13:-14]
+        info["affiliation"] = splitText[3 + employeeShift].strip()[13:-14]
 
         # set the first name
-        info["FirstName"] = splitText[5 + employeeShift].strip()[15:-16]
+        info["firstName"] = splitText[5 + employeeShift].strip()[15:-16]
 
         # set the last name
-        info["LastName"] = splitText[6 + employeeShift].strip()[14:-15]
+        info["lastName"] = splitText[6 + employeeShift].strip()[14:-15]
 
         # set the college (Arts and Scineces.. ect)
-        info["College"] = splitText[10 + employeeShift].strip()[16:-18]
+        info["college"] = splitText[10 + employeeShift].strip()[16:-18]
 
         # set their major
-        info["Major"] = splitText[11 + employeeShift].strip()[14:-15]
+        info["major"] = splitText[11 + employeeShift].strip()[14:-15]
 
         # if they have a minor, set the minor
         if splitText[13].strip()[16:-17] != "":
-            info["Minor"] = splitText[13].strip()[16:-17]
+            info["minor"] = splitText[13].strip()[16:-17]
         else:
-            info["Minor"] = None
+            info["minor"] = None
 
-        info["ClassStanding"] = splitText[13 + employeeShift].strip()[15:-16]
+        info["classStanding"] = splitText[13 + employeeShift].strip()[15:-16]
 
         return info
 
