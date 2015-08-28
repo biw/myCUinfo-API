@@ -1,8 +1,6 @@
 myCUinfo-API
 ------------
 
-About
------
 A python wrapper for the [myCUinfo System](http://mycuinfo.colorado.edu) at the [University of Colorado Boulder](http://colorado.edu).
 
 NOTE: I am not affiliated with the development of the myCUinfo system. This project has no indorsement by the University of Colorado.
