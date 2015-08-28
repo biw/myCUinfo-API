@@ -129,9 +129,9 @@ The current GPA is 3.991
 
 To Do
 -----
- [x] Python 2.7+ & 3.x support
- [ ] Create read-only of class listings
- [ ] Make API do writes
+- [X] Python 2.7+ & 3.x support
+- [ ] Create read-only of class listings
+- [ ] Make API do writes
 
 Contribution
 ------------
