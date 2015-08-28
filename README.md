@@ -3,7 +3,7 @@ myCUinfo-API
 
 About
 -----
-This is a python wrapper for the [myCUinfo System](http://mycuinfo.colorado.edu) at the [University of Colorado Boulder](http://colorado.edu). It uses the [python requests library](http://python-requests.org) to scrape the data for any given student with valid login credentials. It currently is read only (you can't edit you classes with it) but I have plans on adding functionality to add/remove classes.
+A python wrapper for the [myCUinfo System](http://mycuinfo.colorado.edu) at the [University of Colorado Boulder](http://colorado.edu).
 
 NOTE: I am not affiliated with the development of the myCUinfo system. This project has no indorsement by the University of Colorado.
 
@@ -19,7 +19,7 @@ Then run the code with python 2.7 or 3.x
 The API currently has a few functions that scrape the info off the myCUinfo site. They all use methods on an initialized cuSessions logged in user. This way the convoluted login process is only handled once.
 
 ####cuSession(username, password) (initializer)####
-This is the overarching class of the myCUinfo API. It takes in a username & password of a myCUinfo user and returns a class object that is a logged in user.
+This is the initializer for the myCUinfo API class. It takes in a username & password of a myCUinfo user and returns a class object that is a logged in user.
 ```python
 user = "example001"
 password = "secret001"
@@ -129,9 +129,9 @@ The current GPA is 3.991
 
 To Do
 -----
-[x] Python 2.7+ & 3.x support
-[ ] Create read-only of class listings
-[ ] Make API do writes
+ [x] Python 2.7+ & 3.x support
+ [ ] Create read-only of class listings
+ [ ] Make API do writes
 
 Contribution
 ------------
