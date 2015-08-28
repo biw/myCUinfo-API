@@ -1,26 +1,25 @@
-#myCUinfo-API#
+myCUinfo-API
+------------
 
-##UPDATE JUNE 2015##
-The myCUinfo.colorado.edu site has changed and with it so has its endpoints. The myCUinfo-API does not currently work. Updates to come.
-
-##About##
-This is a python wrapper for the [myCUinfo System](http://mycuinfo.colorado.edu) at the [University of Colorado Boulder](http://colorado.edu). It uses the [python requests library](http://python-requests.org) to scrape the data for any given student with valid login credentials. It currently is read only (you can't edit you classes with it) but I have plans on adding functionality to add/remove classes.
+About
+-----
+A python wrapper for the [myCUinfo System](http://mycuinfo.colorado.edu) at the [University of Colorado Boulder](http://colorado.edu).
 
 NOTE: I am not affiliated with the development of the myCUinfo system. This project has no indorsement by the University of Colorado.
 
-##Getting Started##
-
+Getting Started
+---------------
 First install the [Python Requests Library](http://docs.python-requests.org/en/latest/). To install Requests use the following command:
 ```bash
 pip install requests
 ```
-Then run the code with python 2.7
+Then run the code with python 2.7 or 3.x
 
 ##Functions and Output##
 The API currently has a few functions that scrape the info off the myCUinfo site. They all use methods on an initialized cuSessions logged in user. This way the convoluted login process is only handled once.
 
 ####cuSession(username, password) (initializer)####
-This is the overarching class of the myCUinfo API. It takes in a username & password of a myCUinfo user and returns a class object that is a logged in user.
+This is the initializer for the myCUinfo API class. It takes in a username & password of a myCUinfo user and returns a class object that is a logged in user.
 ```python
 user = "example001"
 password = "secret001"
@@ -37,15 +36,15 @@ print json.dumps(userInfo, sort_keys=True, indent=4, separators=(',', ':'))
 ######Example Output:######
 ```python
 {
-    "Affiliation": "STUDENT",
-    "ClassStanding": "UGRD",
-    "College": "College Arts and Sciences",
-    "EID": None, #Will include the Employee ID if the user has one
-    "FirstName": "Chip",
-    "LastName": "Buffalo",
-    "Major": "Dance",
-    "Minor": None, #Will return a Minor if the user has one
-    "SID": 000000001 #Student ID
+    "affiliation": "STUDENT",
+    "classStanding": "UGRD",
+    "college": "College Arts and Sciences",
+    "eid": None, #Will include the Employee ID if the user has one
+    "firstName": "Chip",
+    "lastName": "Buffalo",
+    "major": "Dance",
+    "minor": None, #Will return a Minor if the user has one
+    "sid": 000000001 #Student ID
 }
 ```
 
@@ -60,35 +59,31 @@ print json.dumps(userClasses, sort_keys=True, indent=4, separators=(',', ':'))
 ```python
 [
     {
-        "Building": "BESC",
-        "ClassCP": "1010", #Primary Class Code. Ex: SPRT 1010
-        "ClassCS": "001", #Secondary Class Code. Ex: Section 001
-        "Credits": 4,
-        "Days": "MWF",
-        "Department": "SPRT",
-        "EndTime": "10:50 AM",
-        "Grade": None, #Will show a grade when looking at past semesters
-        "Instructor": "Ralphie Buffalo",
-        "Room": "180",
-        "StartTime": "10:00 AM",
-        "Status": "Enrolled", #Will show Waitlisted or Enrolled
-        "Title": "Intro to Spirit (Lecture)"
+        "classCode": "1010", #Primary Class Code. Ex: SPRT 1010
+        "section": "001", #Secondary Class Code. Ex: Section 001
+        "credits": 4,
+        "days": "MWF",
+        "department": "SPRT",
+        "endTime": "10:50 AM",
+        "grade": "A", #will not show for current semester
+        "instructor": "Ralphie Buffalo",
+        "startTime": "10:00 AM",
+        "status": "Enrolled", #Will show Waitlisted or Enrolled
+        "name": "Intro to Spirit (Lecture)"
     },
     ..., #Will list all classes but example output has been truncated to two classes
     {
-        "Building": "ECCS",
-        "ClassCP": "1010", #Primary Class Code. Ex: SPRT 1010
-        "ClassCS": "010", #Secondary Class Code. Ex: Section 010
-        "Credits": 0, #shows 0 credits because all credits go to Lecture class
-        "Days": "W",
-        "Department": "SPRT",
-        "EndTime": "03:50 PM",
-        "Grade": None,  #Will show a grade when looking at past semesters
-        "Instructor": "Ralphie Buffalo",
-        "Room": "112C",
-        "StartTime": "03:00 PM",
-        "Status": "Enrolled", #Will show Waitlisted or Enrolled
-        "Title": "Intro to Spirit (Recitation)"
+        "classCode": "1010", #Primary Class Code. Ex: SPRT 1010
+        "section": "010", #Secondary Class Code. Ex: Section 010
+        "credits": 0, #shows 0 credits because all credits go to Lecture class
+        "days": "W",
+        "department": "SPRT",
+        "endTime": "03:50 PM",
+        "grade": "A-", #will not show for current semester
+        "instructor": "Ralphie Buffalo",
+        "startTime": "03:00 PM",
+        "status": "Enrolled", #Will show Waitlisted or Enrolled
+        "name": "Intro to Spirit (Recitation)"
     },
 ]
 ```
@@ -107,15 +102,15 @@ print json.dumps(userBooks, sort_keys=True, indent=4, separators=(',', ':'))
 ```python
 [
     {
-        "Author": "BRYANT",
-        "Course": "SPRT1010-010",
-        "ISBN": "9780136102041",
-        "New Price": 157.0,
-        "New Rental Price": 102.25,
-        "Required": true,
-        "Title": "SCHOOL SPIRIT: A MASCOT'S PERSPECTIVE",
-        "Used Price": 116.5,
-        "Used Rental Price": 70.75
+        "author": "BRYANT",
+        "course": "SPRT1010-010",
+        "isbn": "9780136102041",
+        "new": 157.0,
+        "newRent": 102.25,
+        "required": true,
+        "title": "SCHOOL SPIRIT: A MASCOT'S PERSPECTIVE",
+        "used": 116.5,
+        "usedRent": 70.75
     }
 ]
 ```
@@ -131,3 +126,22 @@ print "The current GPA is " + gpa
 ```python
 The current GPA is 3.991
 ```
+
+To Do
+-----
+- [X] Python 2.7+ & 3.x support
+- [ ] Create read-only of class listings
+- [ ] Make API do writes
+
+Contribution
+------------
+I welcome all kinds of contribution.
+
+If you have any problem using the myCUinfo-API, please file an issue in Issues.
+
+If you'd like to contribute on source, please upload a pull request in Pull Requests.
+
+License
+-------
+MIT
+

@@ -1,27 +1,33 @@
+#!/usr/bin/python
+# coding=utf8
 import myCUinfo
+import getpass
 
-#define the username & password for the cuSession
-user0 = "user0000"
-pass0 = "password"
+# define the username & password for the cuSession
+try:
+    user0 = raw_input("username: ")
+except NameError:
+    user0 = input("username: ")
+pass0 = getpass.getpass("password: ")
 
-#create the cuLog Session
+# create the cuLog Session
 cuLog = myCUinfo.cuSession(user0, pass0)
 
 
-#if the loggin session is a valid one
+# if the loggin session is a valid one
 if cuLog.valid:
 
-   #example of how to get the books from CSCI 2700, Section 010 (Fall 2014)
-   print cuLog.books("CSCI", "2270", "010")
+    # example of how to get the books from CSCI 2700, Section 010 (Fall 2014)
+    print(cuLog.books("CSCI", "2270", "010"))
 
-   #example of how to get the info of the user
-   print cuLog.info()
+    # example of how to get the info of the user
+    print(cuLog.info())
 
-   #example of how to get the classes of the user (Fall 2014)
-   print cuLog.classes()
+    # example of how to get the classes of the user (Fall 2014)
+    print(cuLog.classes())
 
-   #example of how to get the GPA of the user
-   print cuLog.GPA()
+    # example of how to get the GPA of the user
+    print(cuLog.GPA())
 
 else:
-   print "Bad user. Check the username/password"
+    print("Bad user. Check the username/password")
