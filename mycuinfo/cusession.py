@@ -3,7 +3,7 @@
 import requests
 
 
-class cuSession(requests.sessions.Session):
+class CUSession(requests.sessions.Session):
 
     # get past the weird javascript redirects that mycuinfo uses to login
     def __init__(self, username, password):
