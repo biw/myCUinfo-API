@@ -143,6 +143,15 @@ class cuSession(requests.sessions.Session):
         # create a blank dictonary to add to
         info = {}
 
+        #Each item will be formatted like <name>value</name> or <name>
+        #Only items like the former will be added
+        for item in splitText:
+            name = item.split('<')[1].split('>')[0]
+            value = item.split('>')[1].split('<')[0]
+            if value!="":
+                info[name] = value
+
+        ''' Old way of getting info
         # set the student id (SID)
         try:
             info["sid"] = int(splitText[0].strip()[7:-8])
@@ -188,7 +197,7 @@ class cuSession(requests.sessions.Session):
             info["minor"] = None
 
         info["classStanding"] = splitText[13 + employeeShift].strip()[15:-16]
-
+        '''
         return info
 
     def classes(self, term="Spring 2017"):
