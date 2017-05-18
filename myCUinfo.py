@@ -230,37 +230,44 @@ class cuSession(requests.sessions.Session):
             if len(courseSection) == 1:
                 continue
 
-            tempClass["department"] = courseSection[0]
-            tempClass["classCode"] = courseSection[1][:4]
-            tempClass["section"] = courseSection[1][5:8]
-
-            nameAndType = classInfo.split("<td>")[2].split("</td>")[0]
-            nameAndType = nameAndType.split("&nbsp;")
-
-            tempClass["name"] = nameAndType[0].replace("&amp;", "&")
+            nameAndType = classInfo.split('<th')[1].split('>')[1].split('<')[0]
+            nameAndType = nameAndType.split('&nbsp;')
+            tempClass["name"] = nameAndType[0]
             tempClass["type"] = nameAndType[1][1:-1]
+            classInfo = classInfo.split('</th>')[1]
 
-            dateAndTime = classInfo.split(
-                "meetingtime\"")[1][1:].split("</div>")[0].split(">")
+            courseInfo = classInfo.split('<td>')[1].split('<br')[0]
+
+            tempClass["department"] = courseInfo[0:4]
+            courseInfo = courseInfo.split('-')
+            tempClass["classCode"] = courseInfo[0][-4:]
+            tempClass["section"] = courseInfo[1]
+            classInfo = classInfo.split('</td>')[1:]
+
+            dateAndTime = classInfo[0].split("meetingtime\"")[1][1:].split("</div>")[0].split(">")
 
             tempClass["days"] = dateAndTime[0].split("<")[0][:-1]
             tempClass["startTime"] = dateAndTime[1].split("<")[0]
             tempClass["endTime"] = dateAndTime[3].split("<")[0]
 
             tempInstructor = {}
+            #Some courses (mostly recitations) don't have an instructor listed
+            try:
+                instructorInfo = classInfo[1].split("meetingtime\"")[1][1:].split("</div>")[0].split(">")
 
-            instrutr = classInfo.split("iname=")[1].split("\"")[0].split(",")
+                instrutr = instructorInfo[0].split("&nbsp;")[0].split(" ")
 
-            tempInstructor["firstName"] = instrutr[1]
-            tempInstructor["lastName"] = instrutr[0]
+                tempInstructor["firstName"] = instrutr[1]
+                tempInstructor["lastName"] = instrutr[0]
+            except:
+                tempInstructor["firstName"] = "Staff"
+                tempInstructor["lastName"] = ""
 
             tempClass["instructor"] = tempInstructor
 
-            extraInfo = classInfo.split("align=\"center\">")
-
-            tempClass["credits"] = int(extraInfo[2].split("<")[0])
-            tempClass["status"] = extraInfo[3].split("<")[0]
-            tempClass["grade"] = extraInfo[4].split("<")[0]
+            tempClass["credits"] = int(classInfo[3].split(">")[1])
+            tempClass["status"] = classInfo[4].split(">")[1]
+            tempClass["grade"] = classInfo[5].split(">")[1]
 
             if tempClass["grade"] == "":
                 del(tempClass["grade"])
