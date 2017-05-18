@@ -139,7 +139,6 @@ class cuSession(requests.sessions.Session):
 
         # split the text up a few times till we just have the info
         splitText = pageText.split("<!--")[1][:-2].strip().split("\n")[2:-5]
-        print(splitText)
 
         # create a blank dictonary to add to
         info = {}
