@@ -186,7 +186,7 @@ class cuSession(requests.sessions.Session):
 
         return info
 
-    def classes(self, term="Fall 2015"):
+    def classes(self, term="Spring 2017"):
 
         # if the user is not logged in, error out, else go for it
         if self.valid == False:
@@ -221,6 +221,9 @@ class cuSession(requests.sessions.Session):
             tempClass = {}
 
             courseSection = classInfo[5:].split("&nbsp;")
+
+            if len(courseSection) == 1:
+                continue
 
             tempClass["department"] = courseSection[0]
             tempClass["classCode"] = courseSection[1][:4]
@@ -278,6 +281,8 @@ class cuSession(requests.sessions.Session):
             term = "2151"
         elif term == "Summer2015" or term == 2154:
             term = "2154"
+        elif term == 2167:
+            term = "2167"
         else:
             raise Exception("Error: Invalid Term")
 
