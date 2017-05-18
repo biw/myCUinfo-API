@@ -109,8 +109,6 @@ class cuSession(requests.sessions.Session):
         fifth_post_page = session.post("https://ping.prod.cu.edu/sp/ACS.saml2",
                                        data=ver5_data)
 
-        print(fifth_post_page.url)
-
         # if the user/pass was bad, the url will not be correct
         if fifth_post_page.url != "https://portal.prod.cu.edu/psp/epprod/UCB2/ENTP/h/?tab=DEFAULT":
             self.valid = False
@@ -141,6 +139,7 @@ class cuSession(requests.sessions.Session):
 
         # split the text up a few times till we just have the info
         splitText = pageText.split("<!--")[1][:-2].strip().split("\n")[2:-5]
+        print(splitText)
 
         # create a blank dictonary to add to
         info = {}
@@ -173,13 +172,20 @@ class cuSession(requests.sessions.Session):
         # set the college (Arts and Scineces.. ect)
         info["college"] = splitText[10 + employeeShift].strip()[16:-18]
 
+        #For some reason some categories have two indexes, one of which is empty
+
         # set their major
         info["major"] = splitText[11 + employeeShift].strip()[14:-15]
+        if info["major"]=="":
+            info["major"] = splitText[17 + employeeShift].strip()[14:-15]
+        if info["major"]=="":
+            info["major"]=None
 
         # if they have a minor, set the minor
-        if splitText[13].strip()[16:-17] != "":
-            info["minor"] = splitText[13].strip()[16:-17]
-        else:
+        info["minor"] = splitText[12 + employeeShift].strip()[16:-17]
+        if info["minor"] == "":
+            info["minor"] = splitText[18 + employeeShift].strip()[16:-17]
+        if info["minor"] == "":
             info["minor"] = None
 
         info["classStanding"] = splitText[13 + employeeShift].strip()[15:-16]

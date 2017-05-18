@@ -3,16 +3,16 @@
 import myCUinfo
 import getpass
 
+#fix for python 3.x
+try: raw_input = input
+except NameError: pass
+
 # define the username & password for the cuSession
-try:
-    user0 = raw_input("username: ")
-except NameError:
-    user0 = input("username: ")
+user0 = raw_input("username: ")
 pass0 = getpass.getpass("password: ")
 
 # create the cuLog Session
 cuLog = myCUinfo.cuSession(user0, pass0)
-
 
 # if the loggin session is a valid one
 if cuLog.valid:
