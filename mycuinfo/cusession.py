@@ -3,40 +3,116 @@
 import requests
 
 
-class cuSession(requests.sessions.Session):
+class CUSession(requests.sessions.Session):
 
     # get past the weird javascript redirects that mycuinfo uses to login
     def __init__(self, username, password):
 
-        # start a session in requests
         session = requests.Session()
 
-        # start the session url by going to mycuinfo first
-        x = session.get('http://mycuinfo.colorado.edu')
+        # get the inital page, found url by disecting js code from
+        # mycuinfo.colorado.edu
+        init_page = session.get("https://ping.prod.cu.edu/idp/startSSO.ping" +
+                                "?PartnerSpId=SP:EnterprisePortal&IdpAdapte" +
+                                "rId=BoulderIDP&TargetResource=https://port" +
+                                "al.prod.cu.edu%2Fpsp%2Fepprod%2FUCB2%2FENT" +
+                                "P%2Fh%2F%3Ftab%3DDEFAULT")
+        init_text = init_page.text
 
-        # split up the url to get the session url
-        xsplit = x.text.split('<form id="')[1].split('action="')
-        url = xsplit[1].split('" method="post"')
+        # set the post data for the next request
+        resumePath = init_text.split('name="resumePath" value="')[
+            1].split('"')[0]
+        ver1_data = {
+            "allowInteraction": "true",
+            "resumePath": resumePath,
+            "reauth": "false"
+        }
 
-        # login to the site and move to the ping adress that we got with url
-        payload = {'pf.username': username, 'pf.pass': password}
-        z = session.post('https://ping.prod.cu.edu' + url[0], data=payload)
+        # human verification page num. 1
+        post_page = session.post(
+            "https://ping.prod.cu.edu/proxy/?cmd=idp-sso", data=ver1_data)
+        post_page_text = post_page.text
 
-        # we are now on our final ping page
-        finalSubUrl = "https://ping.prod.cu.edu/sp/ACS.saml2"
-        RelayUrl = "https://portal.prod.cu.edu/psp/epprod/UCB2/ENTP/h/"
+        SAMLRequest = post_page_text.split(
+            'name="SAMLRequest" value="')[1].split('"')[0]
+        RelayState = post_page_text.split(
+            'name="RelayState" value="')[1].split('"')[0]
+        ver2_data = {
+            "SAMLRequest": SAMLRequest,
+            "RelayState": RelayState
+        }
 
-        # get the ping code to loggin
-        finalSub = z.text.split('value=')[1][1:].split('"/>')[0]
+        # human verification page num. 2
+        second_post_page = session.post("https://fedauth.colorado.edu/idp/" +
+                                        "profile/SAML2/POST/SSO",
+                                        data=ver2_data)
+        second_post_page_text = second_post_page.text
 
-        # set the first redirect, must always go to the opening url
-        payload2 = {"SAMLResponse": finalSub, "RelayState": RelayUrl}
+        postURL = second_post_page_text.split(
+            'fm-login" name="login" action="')[1].split('"')[0]
+        login_data = {
+            "timezoneOffset": "0",
+            "_eventId_proceed": "Log In",
+            "j_username": username,
+            "j_password": password
+        }
 
-        # send the final ping adress, once this is done we are logged in.
-        final = session.post(finalSubUrl, data=payload2)
+        # user login page
+        login_request = session.post(
+            "https://fedauth.colorado.edu" + postURL, data=login_data)
+
+        login_text = login_request.text
+
+        RelayState = login_text.split('name="RelayState" value="')[
+            1].split('"')[0]
+        SAMLResponse = login_text.split(
+            'name="SAMLResponse" value="')[1].split('"')[0]
+
+        ver3_data = {
+            "RelayState": RelayState,
+            "SAMLResponse": SAMLResponse
+        }
+
+        # human verification page num. 3
+        third_post_page = session.post(
+            "https://ping.prod.cu.edu/sp/ACS.saml2",
+            data=ver3_data)
+
+        third_post_page_text = third_post_page.text
+
+        REF = third_post_page_text.split('name="REF" value="')[1].split('"')[0]
+        TargetResource = (third_post_page_text.split(
+            'name="TargetResource" value="')[1].split('"')[0])
+        ver4_data = {
+            "REF": REF,
+            "TargetResource": TargetResource
+        }
+
+        # human verification page num. 4
+        URL = third_post_page_text.split('method="post" action="')[
+            1].split('"')[0]
+        forth_post_page = session.post(URL, data=ver4_data)
+
+        forth_post_page_text = forth_post_page.text
+
+        RelayState = forth_post_page_text.split(
+            'name="RelayState" value="')[1].split('"')[0]
+        SAMLResponse = forth_post_page_text.split(
+            'name="SAMLResponse" value="')[1].split('"')[0]
+
+        ver5_data = {
+            "RelayState": RelayState,
+            "SAMLResponse": SAMLResponse
+        }
+
+        # human verification page num. 5
+        fifth_post_page = session.post("https://ping.prod.cu.edu/sp/ACS.saml2",
+                                       data=ver5_data)
+
+        print(fifth_post_page.url)
 
         # if the user/pass was bad, the url will not be correct
-        if final.url != "https://portal.prod.cu.edu/psp/epprod/UCB2/ENTP/h/":
+        if fifth_post_page.url != "https://portal.prod.cu.edu/psp/epprod/UCB2/ENTP/h/?tab=DEFAULT":
             self.valid = False
         else:
             self.valid = True
@@ -110,7 +186,7 @@ class cuSession(requests.sessions.Session):
 
         return info
 
-    def classes(self, term="Fall 2015"):
+    def classes(self, term="Spring 2017"):
 
         # if the user is not logged in, error out, else go for it
         if self.valid == False:
@@ -145,6 +221,9 @@ class cuSession(requests.sessions.Session):
             tempClass = {}
 
             courseSection = classInfo[5:].split("&nbsp;")
+
+            if len(courseSection) == 1:
+                continue
 
             tempClass["department"] = courseSection[0]
             tempClass["classCode"] = courseSection[1][:4]
@@ -202,6 +281,8 @@ class cuSession(requests.sessions.Session):
             term = "2151"
         elif term == "Summer2015" or term == 2154:
             term = "2154"
+        elif term == 2167:
+            term = "2167"
         else:
             raise Exception("Error: Invalid Term")
 
