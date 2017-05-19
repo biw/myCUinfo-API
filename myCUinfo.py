@@ -336,7 +336,6 @@ class cuSession(requests.sessions.Session):
 
         pageText = self.session.get(
             baseUrl + course1 + section1 + term1 + session1).text
-
         bookList = []
 
         bookInfoList = pageText.split("<tbody>")[1].split(
@@ -345,16 +344,17 @@ class cuSession(requests.sessions.Session):
         for bookInfo in bookInfoList:
 
             infoList = bookInfo.split("<td")
-
             tempBook = {}
 
             # gets all the book info, adds nothing is something errors
             try:
-                tempBook["author"] = infoList[1][1:-5]
-                tempBook["title"] = infoList[2][1:-5]
+                tempBook["author"] = infoList[1][1:-6]
+                tempBook["title"] = infoList[2][1:-6]
                 tempBook["required"] = infoList[3].split(">")[1][:-4]
-                tempBook["course"] = infoList[4][1:-5]
-                tempBook["isbn"] = infoList[5][1:-5]
+                tempBook["course"] = infoList[4][1:-6].replace('\n', "")
+                tempBook["isbn"] = infoList[5][1:-12]
+                #None of this information is available anymore
+                '''
                 tempBook["new"] = float(infoList[6].split(">")[1][:-4].strip())
                 tempBook["used"] = float(
                     infoList[7].split(">")[1][:-4].strip())
@@ -362,10 +362,10 @@ class cuSession(requests.sessions.Session):
                     infoList[8].split(">")[1][:-4].strip())
                 tempBook["usedRent"] = float(
                     infoList[9].split(">")[1][:-4].strip())
+                '''
                 bookList.append(tempBook)
             except:
                 pass
-
         return bookList
 
     # look up overall GPA

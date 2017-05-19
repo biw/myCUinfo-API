@@ -18,7 +18,7 @@ cuLog = myCUinfo.cuSession(user0, pass0)
 if cuLog.valid:
 
     # example of how to get the books from CSCI 2700, Section 010 (Fall 2014)
-    print(cuLog.books("CSCI", "2270", "010"))
+    print(cuLog.books("BUSM", "2001", "002"))
 
     # example of how to get the info of the user
     print(cuLog.info())
