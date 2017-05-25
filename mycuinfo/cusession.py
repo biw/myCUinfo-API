@@ -143,61 +143,14 @@ class CUSession(requests.sessions.Session):
         # create a blank dictonary to add to
         info = {}
 
-        #Each item will be formatted like <name>value</name> or <name>
-        #Only items like the former will be added
+        # Each item will be formatted like <name>value</name> or <name>
+        # Only items like the former will be added
         for item in splitText:
             name = item.split('<')[1].split('>')[0]
             value = item.split('>')[1].split('<')[0]
-            if value!="":
+            if value != "":
                 info[name] = value
 
-        ''' Old way of getting info
-        # set the student id (SID)
-        try:
-            info["sid"] = int(splitText[0].strip()[7:-8])
-        except:
-            print(len(splitText))
-
-        # set a shift for students who also are employees
-        employeeShift = 0
-
-        # if the student is a employee, set there EID
-        if splitText[1].strip() != "<demographicData>":
-            info["eid"] = int(splitText[1].strip()[7:-8])
-            employeeShift = 1
-        else:
-            info["eid"] = 0
-
-        # Set the affiliation (Student/staff)
-        info["affiliation"] = splitText[3 + employeeShift].strip()[13:-14]
-
-        # set the first name
-        info["firstName"] = splitText[5 + employeeShift].strip()[15:-16]
-
-        # set the last name
-        info["lastName"] = splitText[6 + employeeShift].strip()[14:-15]
-
-        # set the college (Arts and Scineces.. ect)
-        info["college"] = splitText[10 + employeeShift].strip()[16:-18]
-
-        #For some reason some categories have two indexes, one of which is empty
-
-        # set their major
-        info["major"] = splitText[11 + employeeShift].strip()[14:-15]
-        if info["major"]=="":
-            info["major"] = splitText[17 + employeeShift].strip()[14:-15]
-        if info["major"]=="":
-            info["major"]=None
-
-        # if they have a minor, set the minor
-        info["minor"] = splitText[12 + employeeShift].strip()[16:-17]
-        if info["minor"] == "":
-            info["minor"] = splitText[18 + employeeShift].strip()[16:-17]
-        if info["minor"] == "":
-            info["minor"] = None
-
-        info["classStanding"] = splitText[13 + employeeShift].strip()[15:-16]
-        '''
         return info
 
     def classes(self, term="Spring 2017"):
@@ -253,16 +206,30 @@ class CUSession(requests.sessions.Session):
             tempClass["section"] = courseInfo[1]
             classInfo = classInfo.split('</td>')[1:]
 
-            dateAndTime = classInfo[0].split("meetingtime\"")[1][1:].split("</div>")[0].split(">")
+<< << << < Updated upstream
+            dateAndTime = classInfo[0].split("meetingtime\"")[1][
+                                             1:].split("</div>")[0].split(">")
+== == == =
+            dateAndTime = classInfo[0].split("meetingtime\"")[1][
+                1:].split("</div>")[0].split(">")
+>>>>>> > Stashed changes
 
             tempClass["days"] = dateAndTime[0].split("<")[0][:-1]
             tempClass["startTime"] = dateAndTime[1].split("<")[0]
             tempClass["endTime"] = dateAndTime[3].split("<")[0]
 
             tempInstructor = {}
-            #Some courses (mostly recitations) don't have an instructor listed
+<< << << < Updated upstream
+            # Some courses (mostly recitations) don't have an instructor listed
             try:
-                instructorInfo = classInfo[1].split("meetingtime\"")[1][1:].split("</div>")[0].split(">")
+                instructorInfo = classInfo[1].split("meetingtime\"")[1][
+                                                    1:].split("</div>")[0].split(">")
+== == == =
+            # Some courses (mostly recitations) don't have an instructor listed
+            try:
+                instructorInfo = classInfo[1].split("meetingtime\"")[1][
+                    1:].split("</div>")[0].split(">")
+>>>>>> > Stashed changes
 
                 instrutr = instructorInfo[0].split("&nbsp;")[0].split(" ")
 
@@ -353,16 +320,7 @@ class CUSession(requests.sessions.Session):
                 tempBook["required"] = infoList[3].split(">")[1][:-4]
                 tempBook["course"] = infoList[4][1:-6].replace('\n', "")
                 tempBook["isbn"] = infoList[5][1:-12]
-                #None of this information is available anymore
-                '''
-                tempBook["new"] = float(infoList[6].split(">")[1][:-4].strip())
-                tempBook["used"] = float(
-                    infoList[7].split(">")[1][:-4].strip())
-                tempBook["newRent"] = float(
-                    infoList[8].split(">")[1][:-4].strip())
-                tempBook["usedRent"] = float(
-                    infoList[9].split(">")[1][:-4].strip())
-                '''
+
                 bookList.append(tempBook)
             except:
                 pass
