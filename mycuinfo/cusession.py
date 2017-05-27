@@ -206,30 +206,19 @@ class CUSession(requests.sessions.Session):
             tempClass["section"] = courseInfo[1]
             classInfo = classInfo.split('</td>')[1:]
 
-<< << << < Updated upstream
-            dateAndTime = classInfo[0].split("meetingtime\"")[1][
-                                             1:].split("</div>")[0].split(">")
-== == == =
             dateAndTime = classInfo[0].split("meetingtime\"")[1][
                 1:].split("</div>")[0].split(">")
->>>>>> > Stashed changes
 
             tempClass["days"] = dateAndTime[0].split("<")[0][:-1]
             tempClass["startTime"] = dateAndTime[1].split("<")[0]
             tempClass["endTime"] = dateAndTime[3].split("<")[0]
 
             tempInstructor = {}
-<< << << < Updated upstream
-            # Some courses (mostly recitations) don't have an instructor listed
-            try:
-                instructorInfo = classInfo[1].split("meetingtime\"")[1][
-                                                    1:].split("</div>")[0].split(">")
-== == == =
+
             # Some courses (mostly recitations) don't have an instructor listed
             try:
                 instructorInfo = classInfo[1].split("meetingtime\"")[1][
                     1:].split("</div>")[0].split(">")
->>>>>> > Stashed changes
 
                 instrutr = instructorInfo[0].split("&nbsp;")[0].split(" ")
 
