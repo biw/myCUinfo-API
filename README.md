@@ -2,20 +2,26 @@
 
 A python wrapper for the [myCUinfo System](http://mycuinfo.colorado.edu) at the [University of Colorado Boulder](http://colorado.edu).
 
-NOTE: I am not affiliated with the development of the myCUinfo system. This project has no indorsement by the University of Colorado.
+NOTE: This project is not affiliated with the development of the myCUinfo system. This project has no endorsement by the University of Colorado.
 
 ## Getting Started
-First install the [Python Requests Library](http://docs.python-requests.org/en/latest/). To install Requests use the following command:
+
+First, install the [Python Requests Library](http://docs.python-requests.org/en/latest/). To install Requests use the following command:
+
 ```bash
 $ pip install requests
 ```
-Then run the code with python 2.7 or 3.x
+
+Then run the code with Python 2.7 or 3.x
 
 ## Functions and Output
+
 The API currently has a few functions that scrape the info off the myCUinfo site. They all use methods on an initialized CUSessions logged in user. This way the convoluted login process is only handled once.
 
 #### CUSession(username, password) [initializer]
+
 This is the initializer for the myCUinfo API class. It takes in a username & password of a myCUinfo user and returns a class object that is a logged in user.
+
 ```python
 import mycuinfo
 
@@ -25,13 +31,16 @@ loginUser = mycuinfo.CUSession(user, password)
 ```
 
 #### CUSession.info()
+
 This method returns the basic user information. We will format the output with json.
+
 ```python
 userInfo = loginUser.info()
 print json.dumps(userInfo, sort_keys=True, indent=4, separators=(',', ':'))
 ```
 
 ###### Example Output:
+
 ```python
 {
     "affiliation": "STUDENT",
@@ -47,13 +56,16 @@ print json.dumps(userInfo, sort_keys=True, indent=4, separators=(',', ':'))
 ```
 
 #### CUSession.classes(term)
+
 The method returns the class information of the user for the optional given term. We will format the output with json.
+
 ```python
 userClasses = loginUser.classes("Spring 2015") # we can also call loginUser.classes() and it will default to the current semester
 print json.dumps(userClasses, sort_keys=True, indent=4, separators=(',', ':'))
 ```
 
 ###### Example Output:
+
 ```python
 [
     {
@@ -87,7 +99,9 @@ print json.dumps(userClasses, sort_keys=True, indent=4, separators=(',', ':'))
 ```
 
 #### CUSession.books(department, courseNumber, section, term)
+
 The method returns the book information for a given class section for an optional given term. We will format the output with json.
+
 ```python
 department = "SPRT"
 courseNumber = "1010"
@@ -97,6 +111,7 @@ print json.dumps(userBooks, sort_keys=True, indent=4, separators=(',', ':'))
 ```
 
 ##### Example Output:
+
 ```python
 [
     {
@@ -114,28 +129,34 @@ print json.dumps(userBooks, sort_keys=True, indent=4, separators=(',', ':'))
 ```
 
 #### CUSession.GPA()
-The method returns the current GPA of student
+
+The method returns the current GPA of the logged in student
+
 ```python
 gpa = loginUser.GPA()
 print "The current GPA is " + gpa
 ```
 
 ##### Example Output:
+
 ```python
 The current GPA is 3.991
 ```
 
 ## To Do
+
 - [x] Python 2.7+ & 3.x support
 - [ ] Create read-only of class listings
 - [ ] Make API do writes
 
 ## Contribution
+
 I welcome all kinds of contribution.
 
 If you have any problem using the myCUinfo-API, please file an issue in Issues.
 
-If you'd like to contribute on source, please upload a pull request in Pull Requests.
+If you'd like to contribute on the source, please upload a pull request in Pull Requests.
 
 ## License
+
 [MIT](LICENSE)
