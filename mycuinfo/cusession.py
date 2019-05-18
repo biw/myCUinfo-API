@@ -1,7 +1,43 @@
 #!/usr/bin/python
 # coding=utf8
 import requests
+import json
+import html
 
+
+# This script is downloaded when navigating to mycuinfo.colorado.edu.
+# It contains a map of a bunch of urls. We can convert it to a dictionary
+# And find the one students are interested in with the key iepprdUCB2 to
+# hopefully avoid needing to update the url and having the API break all the time
+def getURL(session):
+    page_text = session.get('https://portal.prod.cu.edu/scripts/redirect.js').text
+    ind0 = page_text.find('{')
+    ind1 = page_text.find('}')
+    url_map_string = page_text[ind0:ind1+1]
+    lines = url_map_string.split('\n')
+    good_lines = []
+    for l in lines:
+        if len(l)<20 and l.find('{')==-1 and l.find('}')==-1:
+            continue
+        good_lines.append(l)
+    url_map_string = '\n'.join(good_lines)
+    url_map = json.loads(url_map_string)
+    return url_map['iepprdUCB2']
+
+# Take in some html text and the names of the inputs we need
+# Find the post url and the values for those inputs
+def parseForm(text, names):
+    form = text[text.find('<form')+len('<form'):text.find('</form>')]
+    act0 = form.find('action="')+len('action="')
+    act1 = form.find('"', act0+1)
+    action = form[act0:act1]
+    data = {}
+    for n in names:
+        input = form[form.find(n):]
+        ind0 = input.find('value="')+len('value="')
+        ind1 = input.find('"', ind0+1)
+        data[n] = input[ind0:ind1]
+    return html.unescape(action), data
 
 class CUSession(requests.sessions.Session):
 
@@ -9,108 +45,29 @@ class CUSession(requests.sessions.Session):
     def __init__(self, username, password):
 
         session = requests.Session()
-
+        url = getURL(session)
         # get the inital page, found url by disecting js code from
         # mycuinfo.colorado.edu
-        init_page = session.get("https://ping.prod.cu.edu/idp/startSSO.ping" +
-                                "?PartnerSpId=SP:EnterprisePortal&IdpAdapte" +
-                                "rId=BoulderIDP&TargetResource=https://port" +
-                                "al.prod.cu.edu%2Fpsp%2Fepprod%2FUCB2%2FENT" +
-                                "P%2Fh%2F%3Ftab%3DDEFAULT")
+        init_page = session.get(url)
         init_text = init_page.text
+        resume_url, resume_data = parseForm(init_text, ['SAMLRequest', 'RelayState'])
+        resume_page = session.post(resume_url, data=resume_data)
 
-        # set the post data for the next request
-        resumePath = init_text.split('name="resumePath" value="')[
-            1].split('"')[0]
-        ver1_data = {
-            "allowInteraction": "true",
-            "resumePath": resumePath,
-            "reauth": "false"
-        }
+        login_url, login_data = parseForm(resume_page.text, [])
+        login_data['j_username'] = username
+        login_data['j_password'] = password
+        login_data['timezoneOffset'] = '0'
+        login_data['_eventId_proceed'] = 'Log In'
+        login_url = 'https://fedauth.colorado.edu' + login_url
+        login_page1 = session.post(login_url, login_data)
+        login_url2, login_data2 = parseForm(login_page1.text, ['SAMLResponse', 'RelayState'])
+        login_page2 = session.post(login_url2, login_data2)
 
-        # human verification page num. 1
-        post_page = session.post(
-            "https://ping.prod.cu.edu/proxy/?cmd=idp-sso", data=ver1_data)
-        post_page_text = post_page.text
-
-        SAMLRequest = post_page_text.split(
-            'name="SAMLRequest" value="')[1].split('"')[0]
-        RelayState = post_page_text.split(
-            'name="RelayState" value="')[1].split('"')[0]
-        ver2_data = {
-            "SAMLRequest": SAMLRequest,
-            "RelayState": RelayState
-        }
-
-        # human verification page num. 2
-        second_post_page = session.post("https://fedauth.colorado.edu/idp/" +
-                                        "profile/SAML2/POST/SSO",
-                                        data=ver2_data)
-        second_post_page_text = second_post_page.text
-
-        postURL = second_post_page_text.split(
-            'fm-login" name="login" action="')[1].split('"')[0]
-        login_data = {
-            "timezoneOffset": "0",
-            "_eventId_proceed": "Log In",
-            "j_username": username,
-            "j_password": password
-        }
-
-        # user login page
-        login_request = session.post(
-            "https://fedauth.colorado.edu" + postURL, data=login_data)
-
-        login_text = login_request.text
-
-        RelayState = login_text.split('name="RelayState" value="')[
-            1].split('"')[0]
-        SAMLResponse = login_text.split(
-            'name="SAMLResponse" value="')[1].split('"')[0]
-
-        ver3_data = {
-            "RelayState": RelayState,
-            "SAMLResponse": SAMLResponse
-        }
-
-        # human verification page num. 3
-        third_post_page = session.post(
-            "https://ping.prod.cu.edu/sp/ACS.saml2",
-            data=ver3_data)
-
-        third_post_page_text = third_post_page.text
-
-        REF = third_post_page_text.split('name="REF" value="')[1].split('"')[0]
-        TargetResource = (third_post_page_text.split(
-            'name="TargetResource" value="')[1].split('"')[0])
-        ver4_data = {
-            "REF": REF,
-            "TargetResource": TargetResource
-        }
-
-        # human verification page num. 4
-        URL = third_post_page_text.split('method="post" action="')[
-            1].split('"')[0]
-        forth_post_page = session.post(URL, data=ver4_data)
-
-        forth_post_page_text = forth_post_page.text
-
-        RelayState = forth_post_page_text.split(
-            'name="RelayState" value="')[1].split('"')[0]
-        SAMLResponse = forth_post_page_text.split(
-            'name="SAMLResponse" value="')[1].split('"')[0]
-
-        ver5_data = {
-            "RelayState": RelayState,
-            "SAMLResponse": SAMLResponse
-        }
-
-        # human verification page num. 5
-        fifth_post_page = session.post("https://ping.prod.cu.edu/sp/ACS.saml2",
-                                       data=ver5_data)
+        last_url, last_data = parseForm(login_page2.text, ['SAMLResponse', 'RelayState'])
+        last_page = session.post(last_url, last_data)
 
         # if the user/pass was bad, the url will not be correct
-        if fifth_post_page.url != "https://portal.prod.cu.edu/psp/epprod/UCB2/ENTP/h/?tab=DEFAULT":
+        if last_page.url != "https://portal.prod.cu.edu/psp/epprod/UCB2/ENTP/h/?tab=DEFAULT":
             self.valid = False
         else:
             self.valid = True
@@ -118,6 +75,7 @@ class CUSession(requests.sessions.Session):
         # from here on, we are a regular user who has all the logged in cookies
         # we can do anything that a web user could (javascript not included)
         self.session = session
+
 
     # get the basic info of the user (name, student ID, Major, College, etc.)
     def info(self):
@@ -153,7 +111,7 @@ class CUSession(requests.sessions.Session):
 
         return info
 
-    def classes(self, term="Spring 2017"):
+    def classes(self, term="Spring 2019"):
 
         # if the user is not logged in, error out, else go for it
         if self.valid == False:
@@ -209,9 +167,13 @@ class CUSession(requests.sessions.Session):
             dateAndTime = classInfo[0].split("meetingtime\"")[1][
                 1:].split("</div>")[0].split(">")
 
-            tempClass["days"] = dateAndTime[0].split("<")[0][:-1]
-            tempClass["startTime"] = dateAndTime[1].split("<")[0]
-            tempClass["endTime"] = dateAndTime[3].split("<")[0]
+            # Independent studys and probably other classes don't have a time listed
+            try:
+                tempClass["days"] = dateAndTime[0].split("<")[0][:-1]
+                tempClass["startTime"] = dateAndTime[1].split("<")[0]
+                tempClass["endTime"] = dateAndTime[3].split("<")[0]
+            except:
+                pass
 
             tempInstructor = {}
 
@@ -252,14 +214,38 @@ class CUSession(requests.sessions.Session):
         # set the term info. The move up by three/four every semester, so we can
         # use that forumual to change the term info to correct number for the
         # API.
-        if term == "Fall2015" or term == 2147:
+        # The available set of terms keeps changing, so it would be nice to calculate the available ones on the fly?
+        # For now do it this way because I'm lazy
+        if term == "Fall2015" or term == 2157:
             term = "2157"
         elif term == "Spring2015" or term == 2151:
             term = "2151"
         elif term == "Summer2015" or term == 2154:
             term = "2154"
-        elif term == 2167:
+        elif term=="Fall2016" or term == 2167:
             term = "2167"
+        elif term == "Spring2016" or term == 2161:
+            term = "2161"
+        elif term == "Summer2016" or term == 2164:
+            term = "2164"
+        elif term=="Fall2017" or term == 2177:
+            term = "2177"
+        elif term == "Spring2017" or term == 2171:
+            term = "2171"
+        elif term == "Summer2017" or term == 2174:
+            term = "2174"
+        elif term=="Fall2018" or term == 2187:
+            term = "2187"
+        elif term == "Spring2018" or term == 2181:
+            term = "2181"
+        elif term == "Summer2018" or term == 2184:
+            term = "2184"
+        elif term=="Fall2019" or term == 2197:
+            term = "2197"
+        elif term == "Spring2019" or term == 2191:
+            term = "2191"
+        elif term == "Summer2019" or term == 2194:
+            term = "2194"
         else:
             raise Exception("Error: Invalid Term")
 
